@@ -11,10 +11,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
     <style>
-        canvas {
+        body {
+            background-color: rgba(248, 249, 250, 1);
+        }
+
+        .output_canvas {
             position: absolute;
             top: 0;
             left: 0;
+            border-radius: 6px;
+            border-color: black;
+            border: 2px solid black;
         }
 
         .info {
@@ -22,7 +29,32 @@
             top: 10px;
             left: 10px;
             color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            line-height: 1.2;
+            font-size: 14px;
+            padding-top: 14px;
             z-index: 10;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-image {
+            position: absolute;
+            bottom: 10px;
+            /* 10px above the bottom edge of the canvas */
+            left: 10px;
+            /* 10px from the left edge of the canvas */
+            width: 200px;
+            /* Maximum width of the image */
+            height: auto;
+            /* Maintain aspect ratio */
+            z-index: 2;
+            /* Ensure the image overlays the canvas */
+            border-radius: 5px;
+            /* Optional: Rounded corners for aesthetics */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            /* Optional: Subtle shadow */
         }
     </style>
 </head>
@@ -33,9 +65,11 @@
             <div class="col-md-8">
                 <div class="position-relative">
                     <video class="input_video" style="display:none;"></video>
-                    <canvas class="output_canvas" width="640px" height="480px"></canvas>
+                    <canvas class="output_canvas" width="960px" height="720px"></canvas>
+                    <!-- Add Image -->
                     <div class="info" id="annotations"></div>
                 </div>
+                <img src="head_pose.jpg" alt="Overlay Image" class="canvas-image">
             </div>
         </div>
     </div>
@@ -112,7 +146,7 @@
         let pitch_accumulator = [];
         let yaw_accumulator = [];
         let roll_accumulator = [];
-        const M_average = 5;
+        const M_average = 4;
         let GlobalLandmarks;
 
         faceMesh.onResults((results) => {
@@ -145,6 +179,9 @@
                     x = parseInt(landmarks[lm].x * canvasElement.width);
                     y = parseInt(landmarks[lm].y * canvasElement.height);
                     face_coordination_in_image.push([x, y]);
+                }
+                else {
+                    drawPoint(canvasCtx, landmarks[lm], 'green', width = 1.0); // Eye center
                 }
             }
 
@@ -216,8 +253,7 @@
                 annotationsElement.innerHTML = `
                 <p>Pitch: ${radiansToDegrees(pitch_).toFixed(1)}°</p>
                 <p>Yaw: ${radiansToDegrees(yaw_).toFixed(1)}°</p>
-                <p>Roll: ${radiansToDegrees(roll_).toFixed(1)}°</p>
-            `;
+                <p>Roll: ${radiansToDegrees(roll_).toFixed(1)}°</p>`;
 
 
                 drawArrowFromAngles(faceCenter, pitch_, yaw_, canvasCtx);
@@ -289,7 +325,7 @@
             const bboxHeight = (yMax - yMin) * canvasCtx.canvas.height;
 
             // Draw the bounding box
-            canvasCtx.strokeStyle = 'green';
+            canvasCtx.strokeStyle = 'yellow';
             canvasCtx.lineWidth = 2;
             canvasCtx.strokeRect(bboxX, bboxY, bboxWidth, bboxHeight);
         }
